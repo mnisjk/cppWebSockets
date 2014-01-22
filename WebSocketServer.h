@@ -18,18 +18,18 @@ public:
     WebSocketServer( int port );
     ~WebSocketServer( );
     void run( );
+    void send( int socketID, string data );
     
-    map< int, list<string> > buffers;
+    // Handles writing out to sockets
+    map<int, list<string> > buffers;
 
     // Overriden by children
     virtual void onConnect( int socketID ) = 0;
     virtual void onMessage( int socketID, string data ) = 0;
-    void send     ( int socketID, string data );
 protected:
     int port;    
 
 private:
-    // Attributes
 };
 
 // WebSocketServer.h

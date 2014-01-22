@@ -21,7 +21,7 @@ static int callback_test(   struct libwebsocket_context *context,
                             void *in, 
                             size_t len )
 {
-    int n, m;
+    int n, m, fd;
 	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
 	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
 	struct per_session_data__test *pss = (struct per_session_data__test *)user;
@@ -40,6 +40,7 @@ static int callback_test(   struct libwebsocket_context *context,
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             //lwsl_notice( "callback_dumb_increment: LWS_CALLBACK_SERVER_WRITEABLE\n" );
+            /*
             n = sprintf((char *)p, "%d", pss->number++);
             m = libwebsocket_write(wsi, p, n, LWS_WRITE_TEXT);
             if (m < n) {
@@ -49,6 +50,25 @@ static int callback_test(   struct libwebsocket_context *context,
             if (false && pss->number == 50) {
                 lwsl_info("close tesing limit, closing\n");
                 throw "Close socket testing";
+            }
+            */
+            
+            // **SAVE: below this line
+            fd = libwebsocket_get_socket_fd( wsi );
+            while( !self->buffers[fd].empty( ) )
+            {
+                string message = self->buffers[fd].front( ); 
+                n = sprintf( (char *)p, "%s", message.c_str( ) );
+                m = libwebsocket_write( wsi, p, n, LWS_WRITE_TEXT );
+                if( m < n ) 
+                {
+                    lwsl_err( "ERROR %d writing to di socket\n", n );
+                    //**FIXME: A throw doesn't really do much here...
+                    throw "Error writing to socket";
+                }
+                else
+                    // Only pop the message if it was sent successfully.
+                    self->buffers[fd].pop_front( ); 
             }
             break;
 
@@ -67,6 +87,7 @@ static int callback_test(   struct libwebsocket_context *context,
             // **SAVE: below this line
             self->onMessage( libwebsocket_get_socket_fd( wsi ), string( (const char *)in ) );
             break;
+        
         /*
          * this just demonstrates how to use the protocol filter. If you won't
          * study and reject connections based on header content, you don't need
@@ -102,6 +123,8 @@ static struct libwebsocket_protocols protocols[] = {
 void WebSocketServer::send( int socketID, string data )
 {
     lwsl_notice( "Send!!\n" );
+    // Push this onto the buffer. It will be written out when the socket is writable.
+    buffers[socketID].push_back( data );
 }
 
 
@@ -111,6 +134,10 @@ WebSocketServer::WebSocketServer( int port )
     lwsl_notice("libwebsockets test server - "
 			"(C) Copyright 2010-2013 Andy Green <andy@warmcat.com> - "
 						    "licensed under LGPL2.1\n");
+   
+    // Some of the libwebsocket stuff is define statically outside the class. This 
+    // allows us to call instance variables from the outside.  Unfortunately this
+    // means some attributes must be public that otherwise would be private. 
     self = this;
 }
 
