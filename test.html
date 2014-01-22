@@ -25,6 +25,7 @@ ws.onclose = function(evt) {
 };
 ws.onmessage = function(evt) { 
     console.log( "onMessage" );    
+    console.log( evt );    
 };
 ws.onerror = function(evt) { 
     console.log( "onError" );    

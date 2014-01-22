@@ -10,10 +10,6 @@ WebSocketServer *self;
 
 // **TODO: Should consider using templating or child classing
 
-struct per_session_data__test {
-	int number;
-};
-
 static int callback_test(   struct libwebsocket_context *context, 
                             struct libwebsocket *wsi, 
                             enum libwebsocket_callback_reasons reason, 
@@ -24,36 +20,13 @@ static int callback_test(   struct libwebsocket_context *context,
     int n, m, fd;
 	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
 	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-	struct per_session_data__test *pss = (struct per_session_data__test *)user;
     
 	switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
-            lwsl_notice( "callback_dumb_increment: LWS_CALLBACK_ESTABLISHED\n" );
-    //        char buffer[25];
-    //        sprintf( buffer, "[mnisjk] socket: %d\n", libwebsocket_get_socket_fd( wsi ) );
-    //		lwsl_notice( buffer );
-            pss->number = 0;
-            
-            // **SAVE: below this line
             self->onConnect( libwebsocket_get_socket_fd( wsi ) );
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
-            //lwsl_notice( "callback_dumb_increment: LWS_CALLBACK_SERVER_WRITEABLE\n" );
-            /*
-            n = sprintf((char *)p, "%d", pss->number++);
-            m = libwebsocket_write(wsi, p, n, LWS_WRITE_TEXT);
-            if (m < n) {
-                lwsl_err("ERROR %d writing to di socket\n", n);
-                throw "Error writing to socket";
-            }
-            if (false && pss->number == 50) {
-                lwsl_info("close tesing limit, closing\n");
-                throw "Close socket testing";
-            }
-            */
-            
-            // **SAVE: below this line
             fd = libwebsocket_get_socket_fd( wsi );
             while( !self->buffers[fd].empty( ) )
             {
@@ -63,6 +36,7 @@ static int callback_test(   struct libwebsocket_context *context,
                 if( m < n ) 
                 {
                     lwsl_err( "ERROR %d writing to di socket\n", n );
+                    
                     //**FIXME: A throw doesn't really do much here...
                     throw "Error writing to socket";
                 }
@@ -73,40 +47,13 @@ static int callback_test(   struct libwebsocket_context *context,
             break;
 
         case LWS_CALLBACK_RECEIVE:
-            lwsl_notice( "callback_dumb_increment: LWS_CALLBACK_RECEIVE\n" );
-            lwsl_notice( "Received:\n" );
-            lwsl_notice( (const char *)in );
-            //m = libwebsocket_write(wsi, (unsigned char *)"test123", strlen("test123"), LWS_WRITE_TEXT);
-            
-            //		fprintf(stderr, "rx %d\n", (int)len);
-            if (len < 6)
-                break;
-            if (strcmp((const char *)in, "reset\n") == 0)
-                pss->number = 0;
-            
-            // **SAVE: below this line
             self->onMessage( libwebsocket_get_socket_fd( wsi ), string( (const char *)in ) );
             break;
         
-        /*
-         * this just demonstrates how to use the protocol filter. If you won't
-         * study and reject connections based on header content, you don't need
-         * to handle this callback
-         */
-
-        case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
-            lwsl_notice( "callback_dumb_increment: LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION\n" );
-            //dump_handshake_info(wsi);
-            /* you could return non-zero here and kill the connection */
-            break;
-
         default:
-            //lwsl_notice( "callback_dumb_increment: UNKNOWN\n" );
             break;
 	}
-
 	return 0;
-
 }
 
 
@@ -115,9 +62,9 @@ static struct libwebsocket_protocols protocols[] = {
 	{
 		"test",
 		callback_test,
-		sizeof(struct per_session_data__test),
+		0, // user data struct not used
 		10,
-	},{ NULL, NULL, 0, 0 } /* terminator */
+	},{ NULL, NULL, 0, 0 } // terminator
 };
 
 void WebSocketServer::send( int socketID, string data )
@@ -200,14 +147,10 @@ void WebSocketServer::run( )
     while( 1 )
     {
         struct timeval tv;
-
 		gettimeofday(&tv, NULL);
 
-        /*
-		 * This provokes the LWS_CALLBACK_SERVER_WRITEABLE for every
-		 * live websocket connection using the DUMB_INCREMENT protocol,
-		 * as soon as it can take more packets (usually immediately)
-		 */
+		// This provokes the LWS_CALLBACK_SERVER_WRITEABLE for every
+		// as soon as it can take more packets (usually immediately)
 		if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) {
 			libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
 			oldus = tv.tv_usec;
