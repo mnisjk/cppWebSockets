@@ -14,8 +14,9 @@ public: // External Auth
     // Constructor / Destructor
     Server( int port );
     ~Server( );
-    virtual void onConnect( int socketID );
-    virtual void onMessage( int socketID, string data );
+    virtual void onConnect( int socketID                        );
+    virtual void onMessage( int socketID, const string& data    );
+    virtual void   onError( int socketID, const string& message );
 
 private:
     // Attributes

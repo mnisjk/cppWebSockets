@@ -24,8 +24,9 @@ public:
     map<int, list<string> > buffers;
 
     // Overriden by children
-    virtual void onConnect( int socketID ) = 0;
-    virtual void onMessage( int socketID, string data ) = 0;
+    virtual void onConnect( int socketID                        ) = 0;
+    virtual void onMessage( int socketID, const string& data    ) = 0;
+    virtual void   onError( int socketID, const string& message ) = 0;
 protected:
     int port;    
 

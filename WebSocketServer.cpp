@@ -34,12 +34,7 @@ static int callback_test(   struct libwebsocket_context *context,
                 n = sprintf( (char *)p, "%s", message.c_str( ) );
                 m = libwebsocket_write( wsi, p, n, LWS_WRITE_TEXT );
                 if( m < n ) 
-                {
-                    lwsl_err( "ERROR %d writing to di socket\n", n );
-                    
-                    //**FIXME: A throw doesn't really do much here...
-                    throw "Error writing to socket";
-                }
+                    self->onError( fd, "Error writing to socket" );
                 else
                     // Only pop the message if it was sent successfully.
                     self->buffers[fd].pop_front( ); 
