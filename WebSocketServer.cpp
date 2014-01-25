@@ -28,16 +28,16 @@ static int callback_test(   struct libwebsocket_context *context,
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = libwebsocket_get_socket_fd( wsi );
-            while( !self->buffers[fd].empty( ) )
+            while( !self->connections[fd]->buffer.empty( ) )
             {
-                string message = self->buffers[fd].front( ); 
+                string message = self->connections[fd]->buffer.front( ); 
                 n = sprintf( (char *)p, "%s", message.c_str( ) );
                 m = libwebsocket_write( wsi, p, n, LWS_WRITE_TEXT );
                 if( m < n ) 
                     self->onError( fd, "Error writing to socket" );
                 else
                     // Only pop the message if it was sent successfully.
-                    self->buffers[fd].pop_front( ); 
+                    self->connections[fd]->buffer.pop_front( ); 
             }
             break;
 
@@ -66,7 +66,7 @@ void WebSocketServer::send( int socketID, string data )
 {
     lwsl_notice( "Send!!\n" );
     // Push this onto the buffer. It will be written out when the socket is writable.
-    buffers[socketID].push_back( data );
+    this->connections[socketID]->buffer.push_back( data );
 }
 
 
