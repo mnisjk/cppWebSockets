@@ -4,12 +4,13 @@
 #include "../lib/libwebsockets.h"
 #include "WebSocketServer.h"
 
+//**TODO figure out if actually using any std functions
 using namespace std;
 
+// Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
 
-// **TODO: Should consider using templating or child classing
-
+// **TODO: rename 
 static int callback_test(   struct libwebsocket_context *context, 
                             struct libwebsocket *wsi, 
                             enum libwebsocket_callback_reasons reason, 
@@ -52,7 +53,7 @@ static int callback_test(   struct libwebsocket_context *context,
 }
 
 
-// **TODO: set these up via class calls
+// **TODO: set these up via class calls, if possible
 static struct libwebsocket_protocols protocols[] = {
     {
         "test",
