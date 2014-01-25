@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 #include <list>
+#include <syslog.h>
+#include "../lib/libwebsockets.h"
 
 using namespace std;
 
@@ -40,8 +42,11 @@ public:
     virtual void onConnect( int socketID                        ) = 0;
     virtual void onMessage( int socketID, const string& data    ) = 0;
     virtual void   onError( int socketID, const string& message ) = 0;
+
 protected:
     int port;    
+    void log( const string& message );
+    void log( const char* message );
 
 private:
 };

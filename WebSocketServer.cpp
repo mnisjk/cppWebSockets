@@ -79,6 +79,21 @@ string WebSocketServer::getValue( int socketID, const string& name )
     return this->connections[socketID]->keyValueMap[name];
 }
 
+void WebSocketServer::log( const string& message )
+{
+    //**TODO: Update to be used defined stdout
+    if( 1 )
+        printf( "%s\n", message.c_str( ) ); // << endl;
+    
+    //**TODO: Trim this message?
+    syslog( LOG_WARNING, "%s", message.c_str( ) );
+}
+
+void WebSocketServer::log( const char* message )
+{
+    log( string( message ) );
+}
+
 WebSocketServer::WebSocketServer( int port )
 {
 	this->port = port;
