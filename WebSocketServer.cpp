@@ -69,6 +69,15 @@ void WebSocketServer::send( int socketID, string data )
     this->connections[socketID]->buffer.push_back( data );
 }
 
+void WebSocketServer::setValue( int socketID, const string& name, const string& value )
+{
+    this->connections[socketID]->keyValueMap[name] = value;
+}
+
+string WebSocketServer::getValue( int socketID, const string& name )
+{
+    return this->connections[socketID]->keyValueMap[name];
+}
 
 WebSocketServer::WebSocketServer( int port )
 {

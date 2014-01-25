@@ -19,7 +19,6 @@ public:
     struct Connection
     {
         list<string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
-        uint64_t           createTime;
         map<string,string> keyValueMap;
     };
 
@@ -35,7 +34,7 @@ public:
     
     // Key => value storage for each connection
     string getValue( int socketID, const string& name );
-    string setValue( int socketID, const string& name, const string& value );
+    void   setValue( int socketID, const string& name, const string& value );
 
     // Overridden by children
     virtual void onConnect( int socketID                        ) = 0;
