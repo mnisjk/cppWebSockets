@@ -64,7 +64,6 @@ static struct libwebsocket_protocols protocols[] = {
 
 void WebSocketServer::send( int socketID, string data )
 {
-    lwsl_notice( "Send!!\n" );
     // Push this onto the buffer. It will be written out when the socket is writable.
     this->connections[socketID]->buffer.push_back( data );
 }
@@ -97,9 +96,6 @@ void WebSocketServer::log( const char* message )
 WebSocketServer::WebSocketServer( int port )
 {
 	this->port = port;
-    lwsl_notice("libwebsockets test server - "
-			"(C) Copyright 2010-2013 Andy Green <andy@warmcat.com> - "
-						    "licensed under LGPL2.1\n");
    
     // Some of the libwebsocket stuff is define statically outside the class. This 
     // allows us to call instance variables from the outside.  Unfortunately this
@@ -114,7 +110,6 @@ WebSocketServer::~WebSocketServer( )
 
 void WebSocketServer::run( )
 {
-    lwsl_notice( "Run\n" ); 
 	
     //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
@@ -127,29 +122,27 @@ void WebSocketServer::run( )
 	unsigned int oldus = 0;
 	
 	struct lws_context_creation_info info;
-	memset(&info, 0, sizeof info);
-	info.port = 7681;
+	memset( &info, 0, sizeof info );
+	info.port = self->port;
 	info.iface = iface;
 	info.protocols = protocols;
 #ifndef LWS_NO_EXTENSIONS
-	info.extensions = libwebsocket_get_internal_extensions();
+	info.extensions = libwebsocket_get_internal_extensions( );
 #endif
 	// **TODO: update style
-    if (!use_ssl) {
+    if( !use_ssl )
+    {
 		info.ssl_cert_filepath = NULL;
 		info.ssl_private_key_filepath = NULL;
-	} else {
-		if (strlen(resource_path) > sizeof(cert_path) - 32) {
+	} 
+    else 
+    {
+		if( strlen( resource_path ) > sizeof (cert_path ) - 32 )
 			throw "resource path too long";
-		}
-		sprintf(cert_path, "%s/libwebsockets-test-server.pem",
-								resource_path);
-		if (strlen(resource_path) > sizeof(key_path) - 32) {
+		sprintf( cert_path, "%s/libwebsockets-test-server.pem", resource_path );
+		if( strlen( resource_path ) > sizeof( key_path ) - 32 )
 			throw "resource path too long";
-		}
-		sprintf(key_path, "%s/libwebsockets-test-server.key.pem",
-								resource_path);
-
+		sprintf( key_path, "%s/libwebsockets-test-server.key.pem", resource_path );
 		info.ssl_cert_filepath = cert_path;
 		info.ssl_private_key_filepath = key_path;
 	}
@@ -162,19 +155,18 @@ void WebSocketServer::run( )
 	if( !context )
 		throw "libwebsocket init failed";
     
+    log( "Web socket server started" ); 
+
     // Event loop
     while( 1 )
     {
         struct timeval tv;
 		gettimeofday(&tv, NULL);
-
-		// This provokes the LWS_CALLBACK_SERVER_WRITEABLE for every
-		// as soon as it can take more packets (usually immediately)
-		if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) {
+		if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
+        {
 			libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
 			oldus = tv.tv_usec;
 		}
-
         if( libwebsocket_service( context, 50 ) < 0 )
             throw "Error polling for socket activity.";
     }

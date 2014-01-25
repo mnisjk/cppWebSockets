@@ -27,6 +27,7 @@ public:
     // Manages connections. Unfortunately this is public because static callback for 
     // libwebsockets is defined outside the instance and needs access to it.
     map<int,Connection*> connections;
+    int port;    
 
     // Constructor / Destructor
     WebSocketServer( int port );
@@ -44,7 +45,6 @@ public:
     virtual void   onError( int socketID, const string& message ) = 0;
 
 protected:
-    int port;    
     void log( const string& message );
     void log( const char* message );
 
