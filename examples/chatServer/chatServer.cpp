@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
 ChatServer::ChatServer( int port ) : WebSocketServer( port )
 {
-    log( "Initizialing server" );
+    log( "Initializing chat server" );
 }
 
 ChatServer::~ChatServer( )

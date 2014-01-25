@@ -18,10 +18,10 @@ static int callback_test(   struct libwebsocket_context *context,
                             size_t len )
 {
     int n, m, fd;
-	unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
-	unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
+    unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
+    unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
     
-	switch (reason) {
+    switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnect( libwebsocket_get_socket_fd( wsi ) );
             break;
@@ -47,19 +47,19 @@ static int callback_test(   struct libwebsocket_context *context,
         
         default:
             break;
-	}
-	return 0;
+    }
+    return 0;
 }
 
 
 // **TODO: set these up via class calls
 static struct libwebsocket_protocols protocols[] = {
-	{
-		"test",
-		callback_test,
-		0, // user data struct not used
-		10,
-	},{ NULL, NULL, 0, 0 } // terminator
+    {
+        "test",
+        callback_test,
+        0, // user data struct not used
+        10,
+    },{ NULL, NULL, 0, 0 } // terminator
 };
 
 void WebSocketServer::send( int socketID, string data )
@@ -93,10 +93,12 @@ void WebSocketServer::log( const char* message )
     log( string( message ) );
 }
 
-WebSocketServer::WebSocketServer( int port )
+WebSocketServer::WebSocketServer( int port, const string certPath, const string& keyPath )
 {
-	this->port = port;
-   
+    this->_port     = port;
+    this->_certPath = certPath;
+    this->_keyPath  = keyPath; 
+
     // Some of the libwebsocket stuff is define statically outside the class. This 
     // allows us to call instance variables from the outside.  Unfortunately this
     // means some attributes must be public that otherwise would be private. 
@@ -110,63 +112,56 @@ WebSocketServer::~WebSocketServer( )
 
 void WebSocketServer::run( )
 {
-	
+    
     //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
-    const char *iface = NULL;
-	int use_ssl = 0;
+    //const char *iface = NULL;
+    //int use_ssl = 0;
     char *resource_path = "blahblah";
-	char cert_path[1024];
-	char key_path[1024];
-	int opts = 0;
-	unsigned int oldus = 0;
-	
-	struct lws_context_creation_info info;
-	memset( &info, 0, sizeof info );
-	info.port = self->port;
-	info.iface = iface;
-	info.protocols = protocols;
+    //char cert_path[1024];
+    //char key_path[1024];
+    int opts = 0;
+    unsigned int oldus = 0;
+    
+    struct lws_context_creation_info info;
+    memset( &info, 0, sizeof info );
+    info.port = this->_port;
+    info.iface = NULL;
+    info.protocols = protocols;
 #ifndef LWS_NO_EXTENSIONS
-	info.extensions = libwebsocket_get_internal_extensions( );
+    info.extensions = libwebsocket_get_internal_extensions( );
 #endif
-	// **TODO: update style
-    if( !use_ssl )
+    
+    if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
     {
-		info.ssl_cert_filepath = NULL;
-		info.ssl_private_key_filepath = NULL;
-	} 
+        info.ssl_cert_filepath        = this->_certPath.c_str( );
+        info.ssl_private_key_filepath = this->_keyPath.c_str( );
+    } 
     else 
     {
-		if( strlen( resource_path ) > sizeof (cert_path ) - 32 )
-			throw "resource path too long";
-		sprintf( cert_path, "%s/libwebsockets-test-server.pem", resource_path );
-		if( strlen( resource_path ) > sizeof( key_path ) - 32 )
-			throw "resource path too long";
-		sprintf( key_path, "%s/libwebsockets-test-server.key.pem", resource_path );
-		info.ssl_cert_filepath = cert_path;
-		info.ssl_private_key_filepath = key_path;
-	}
-	info.gid = -1;
-	info.uid = -1;
-	info.options = opts;
+        info.ssl_cert_filepath        = NULL;
+        info.ssl_private_key_filepath = NULL;
+    }
+    info.gid = -1;
+    info.uid = -1;
+    info.options = opts;
  
     struct libwebsocket_context *context;
     context = libwebsocket_create_context( &info );
-	if( !context )
-		throw "libwebsocket init failed";
-    
+    if( !context )
+        throw "libwebsocket init failed";
     log( "Web socket server started" ); 
 
     // Event loop
     while( 1 )
     {
         struct timeval tv;
-		gettimeofday(&tv, NULL);
-		if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
+        gettimeofday(&tv, NULL);
+        if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
         {
-			libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
-			oldus = tv.tv_usec;
-		}
+            libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
+            oldus = tv.tv_usec;
+        }
         if( libwebsocket_service( context, 50 ) < 0 )
             throw "Error polling for socket activity.";
     }

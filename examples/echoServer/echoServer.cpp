@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
 EchoServer::EchoServer( int port ) : WebSocketServer( port )
 {
-    log( "Initizialing server" );
+    log( "Initializing echo server" );
 }
 
 EchoServer::~EchoServer( )

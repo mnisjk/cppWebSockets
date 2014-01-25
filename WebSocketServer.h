@@ -27,10 +27,9 @@ public:
     // Manages connections. Unfortunately this is public because static callback for 
     // libwebsockets is defined outside the instance and needs access to it.
     map<int,Connection*> connections;
-    int port;    
 
     // Constructor / Destructor
-    WebSocketServer( int port );
+    WebSocketServer( int port, const string certPath = "", const string& keyPath = "" );
     ~WebSocketServer( );
     
     void run( );
@@ -52,6 +51,9 @@ protected:
     void log( const char* message );
 
 private:
+    int    _port;    
+    string _keyPath;
+    string _certPath;
 };
 
 // WebSocketServer.h
