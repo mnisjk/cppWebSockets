@@ -32,7 +32,9 @@ public:
     // Constructor / Destructor
     WebSocketServer( int port );
     ~WebSocketServer( );
+    
     void run( );
+    void poll( uint64_t timeout = 1000 );
     void send( int socketID, string data );
     
     // Key => value storage for each connection
@@ -45,6 +47,7 @@ public:
     virtual void   onError( int socketID, const string& message ) = 0;
 
 protected:
+    
     void log( const string& message );
     void log( const char* message );
 

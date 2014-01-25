@@ -172,3 +172,8 @@ void WebSocketServer::run( )
     }
 }
 
+void WebSocketServer::poll( uint64_t timeout )
+{
+    throw "Unimplemented"; 
+}
+
