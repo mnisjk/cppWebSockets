@@ -4,14 +4,14 @@
 #include "../lib/libwebsockets.h"
 #include "WebSocketServer.h"
 
-//**TODO figure out if actually using any std functions
 using namespace std;
+
+#define MAX_BUFFER_SIZE 10000
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
 
-// **TODO: rename 
-static int callback_test(   struct libwebsocket_context *context, 
+static int callback_main(   struct libwebsocket_context *context, 
                             struct libwebsocket *wsi, 
                             enum libwebsocket_callback_reasons reason, 
                             void *user, 
@@ -56,16 +56,37 @@ static int callback_test(   struct libwebsocket_context *context,
     return 0;
 }
 
-
-// **TODO: set these up via class calls, if possible
 static struct libwebsocket_protocols protocols[] = {
     {
-        "test",
-        callback_test,
+        "/",
+        callback_main,
         0, // user data struct not used
-        10,
+        MAX_BUFFER_SIZE,
     },{ NULL, NULL, 0, 0 } // terminator
 };
+
+WebSocketServer::WebSocketServer( int port, const string certPath, const string& keyPath )
+{
+    this->_port     = port;
+    this->_certPath = certPath;
+    this->_keyPath  = keyPath; 
+
+    // Some of the libwebsocket stuff is define statically outside the class. This 
+    // allows us to call instance variables from the outside.  Unfortunately this
+    // means some attributes must be public that otherwise would be private. 
+    self = this;
+}
+
+WebSocketServer::~WebSocketServer( )
+{
+    // Free up some memory
+    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
+    {
+        Connection* c = it->second;
+        this->connections.erase( it->first );
+        delete c;
+    }
+}
 
 void WebSocketServer::onConnectWrapper( int socketID )
 {
@@ -109,31 +130,8 @@ void WebSocketServer::log( const string& message )
     syslog( LOG_WARNING, "%s", message.c_str( ) );
 }
 
-void WebSocketServer::log( const char* message )
-{
-    log( string( message ) );
-}
-
-WebSocketServer::WebSocketServer( int port, const string certPath, const string& keyPath )
-{
-    this->_port     = port;
-    this->_certPath = certPath;
-    this->_keyPath  = keyPath; 
-
-    // Some of the libwebsocket stuff is define statically outside the class. This 
-    // allows us to call instance variables from the outside.  Unfortunately this
-    // means some attributes must be public that otherwise would be private. 
-    self = this;
-}
-
-WebSocketServer::~WebSocketServer( )
-{
-    //**TODO: free up the connection list.
-}
-
 void WebSocketServer::run( )
 {
-    
     //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
     //const char *iface = NULL;
@@ -191,5 +189,10 @@ void WebSocketServer::run( )
 void WebSocketServer::poll( uint64_t timeout )
 {
     throw "Unimplemented"; 
+}
+
+void WebSocketServer::log( const char* message )
+{
+    log( string( message ) );
 }
 
