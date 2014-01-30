@@ -169,7 +169,7 @@ void WebSocketServer::run( )
     context = libwebsocket_create_context( &info );
     if( !context )
         throw "libwebsocket init failed";
-    log( "Web socket server started" ); 
+    log( "WebSocket server started" ); 
 
     // Event loop
     while( 1 )
