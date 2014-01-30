@@ -1,3 +1,4 @@
+#include "../../Util.h"
 #include "../../WebSocketServer.h"
 
 using namespace std;
@@ -32,8 +33,8 @@ ChatServer::~ChatServer( )
 void ChatServer::onConnect( int socketID )
 {
     // Give this connection a random user ID
-    const string& handle = "User #" + toString( socketID );
-    log( "New connection: " + handle );
+    const string& handle = "User #" + Util::toString( socketID );
+    Util::log( "New connection: " + handle );
     
     // Associate this handle with the connection
     this->setValue( socketID, "handle", handle );
@@ -46,7 +47,7 @@ void ChatServer::onConnect( int socketID )
 void ChatServer::onMessage( int socketID, const string& data )
 {
     // Send the received message to all connected clients in the form of 'User XX: message...'
-    log( "Received: " + data );
+    Util::log( "Received: " + data );
     const string& message = this->getValue( socketID, "handle" ) + ": " + data;
 
     // Iterate over the connections and send the message
@@ -57,7 +58,7 @@ void ChatServer::onMessage( int socketID, const string& data )
 void ChatServer::onDisconnect( int socketID )
 {
     const string& handle = this->getValue( socketID, "handle" );
-    log( "Disconnected: " + handle );
+    Util::log( "Disconnected: " + handle );
     
     // Let everyone know the user has disconnected
     const string& message = handle + " has disconnected.";
@@ -70,6 +71,6 @@ void ChatServer::onDisconnect( int socketID )
 
 void ChatServer::onError( int socketID, const string& message )
 {
-    log( "Error: " + message );
+    Util::log( "Error: " + message );
 }
 

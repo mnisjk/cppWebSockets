@@ -1,13 +1,13 @@
-#include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include "../lib/libwebsockets.h"
+#include "Util.h"
 #include "WebSocketServer.h"
 
 using namespace std;
 
 #define MAX_BUFFER_SIZE 10000
-#define LOG_PREFIX      "[websocket++] "
+
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
 
@@ -140,13 +140,13 @@ void WebSocketServer::run( )
     
     if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
     {
-        log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
+        Util::log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
         info.ssl_cert_filepath        = this->_certPath.c_str( );
         info.ssl_private_key_filepath = this->_keyPath.c_str( );
     } 
     else 
     {
-        log( "Not using SSL" );
+        Util::log( "Not using SSL" );
         info.ssl_cert_filepath        = NULL;
         info.ssl_private_key_filepath = NULL;
     }
@@ -158,7 +158,7 @@ void WebSocketServer::run( )
     context = libwebsocket_create_context( &info );
     if( !context )
         throw "libwebsocket init failed";
-    log( "Server started on port " + toString( this->_port ) ); 
+    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
 
     // Event loop
     while( 1 )
@@ -180,19 +180,5 @@ void WebSocketServer::poll( uint64_t timeout )
     throw "Unimplemented"; 
 }
 
-void WebSocketServer::log( const string& message )
-{
-    //**TODO: Update to be used defined stdout
-    const string& logMessage = LOG_PREFIX + message;
-    if( 1 )
-        printf( "%s\n", logMessage.c_str( ) ); // << endl;
-    
-    //**TODO: Trim this message?
-    syslog( LOG_WARNING, "%s", logMessage.c_str( ) );
-}
 
-void WebSocketServer::log( const char* message )
-{
-    log( string( message ) );
-}
 
