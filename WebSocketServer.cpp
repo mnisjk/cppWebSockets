@@ -24,7 +24,7 @@ static int callback_test(   struct libwebsocket_context *context,
     
     switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
-            self->onConnect( libwebsocket_get_socket_fd( wsi ) );
+            self->onConnectWrapper( libwebsocket_get_socket_fd( wsi ) );
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
@@ -41,9 +41,13 @@ static int callback_test(   struct libwebsocket_context *context,
                     self->connections[fd]->buffer.pop_front( ); 
             }
             break;
-
+        
         case LWS_CALLBACK_RECEIVE:
             self->onMessage( libwebsocket_get_socket_fd( wsi ), string( (const char *)in ) );
+            break;
+
+        case LWS_CALLBACK_CLOSED:
+            self->onDisconnect( libwebsocket_get_socket_fd( wsi ) );
             break;
         
         default:
@@ -62,6 +66,22 @@ static struct libwebsocket_protocols protocols[] = {
         10,
     },{ NULL, NULL, 0, 0 } // terminator
 };
+
+void WebSocketServer::onConnectWrapper( int socketID )
+{
+    Connection* c = new Connection;
+    c->createTime = time( 0 );
+    this->connections[ socketID ] = c;
+    this->onConnect( socketID );
+}
+
+void WebSocketServer::onDisconnectWrapper( int socketID )
+{
+    this->onDisconnect( socketID );
+    Connection* c = this->connections[ socketID ];
+    this->connections.erase( socketID );
+    delete c;
+}
 
 void WebSocketServer::send( int socketID, string data )
 {
@@ -108,7 +128,7 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
 
 WebSocketServer::~WebSocketServer( )
 {
-
+    //**TODO: free up the connection list.
 }
 
 void WebSocketServer::run( )

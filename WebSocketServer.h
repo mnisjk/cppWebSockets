@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <syslog.h>
+#include <ctime>
 #include "../lib/libwebsockets.h"
 
 using namespace std;
@@ -22,6 +23,7 @@ public:
     {
         list<string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
         map<string,string> keyValueMap;
+        time_t             createTime;
     };
 
     // Manages connections. Unfortunately this is public because static callback for 
@@ -41,9 +43,15 @@ public:
     void   setValue( int socketID, const string& name, const string& value );
 
     // Overridden by children
-    virtual void onConnect( int socketID                        ) = 0;
-    virtual void onMessage( int socketID, const string& data    ) = 0;
-    virtual void   onError( int socketID, const string& message ) = 0;
+    virtual void onConnect(    int socketID                        ) = 0;
+    virtual void onMessage(    int socketID, const string& data    ) = 0;
+    virtual void onDisconnect( int socketID                        ) = 0;
+    virtual void   onError(    int socketID, const string& message ) = 0;
+
+
+    // Wrappers, so we can take care of some maintenance
+    void onConnectWrapper(    int socketID );
+    void onDisconnectWrapper( int socketID );
 
 protected:
     
