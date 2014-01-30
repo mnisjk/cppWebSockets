@@ -1,3 +1,14 @@
+/** --------------------------------------------------------------------------
+ *  Util.cpp
+ *
+ *  A few very basic utility functions for WebSocketServer
+ *
+ *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
+ *  Copyright : 2014
+ *  License   : BSD (see LICENSE)
+ *  -------------------------------------------------------------------------- 
+ **/
+
 #include <stdio.h>
 #include "Util.h"
 

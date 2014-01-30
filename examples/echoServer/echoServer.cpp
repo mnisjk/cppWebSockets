@@ -1,3 +1,16 @@
+/** --------------------------------------------------------------------------
+ *  echoServer.cpp
+ *
+ *  A basic example of how to implement a WebSocketServer.  Creats a WS server
+ *  bound to port 8080.  It listens for connections, and when a message is 
+ *  received, it echos the same message back to the client.
+ *
+ *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
+ *  Copyright : 2014
+ *  License   : BSD (see LICENSE)
+ *  -------------------------------------------------------------------------- 
+ **/
+
 #include "../../WebSocketServer.h"
 
 using namespace std;

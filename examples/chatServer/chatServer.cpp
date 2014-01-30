@@ -1,3 +1,18 @@
+/** --------------------------------------------------------------------------
+ *  chatServer.cpp
+ *
+ *  A basic example of how to implement a WebSocketServer.  Creats a WS server
+ *  bound to port 8080 for basic chatting.  It listens for connections and
+ *  assigns them a random handle based on their socket FD.  Whenever a message
+ *  is received on the server, it is sent out to all connected clients.
+ *  received, it echos the same message back to the client.
+ *
+ *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
+ *  Copyright : 2014
+ *  License   : BSD (see LICENSE)
+ *  -------------------------------------------------------------------------- 
+ **/
+
 #include "../../Util.h"
 #include "../../WebSocketServer.h"
 

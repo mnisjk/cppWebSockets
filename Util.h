@@ -1,4 +1,14 @@
-// Util.h
+/** --------------------------------------------------------------------------
+ *  Util.h
+ *
+ *  A few very basic utility functions for WebSocketServer
+ *
+ *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
+ *  Copyright : 2014
+ *  License   : BSD (see LICENSE)
+ *  -------------------------------------------------------------------------- 
+ **/
+
 #ifndef _UTIL_H
 #define _UTIL_H
 

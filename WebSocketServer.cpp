@@ -1,3 +1,16 @@
+/** --------------------------------------------------------------------------
+ *  WebSocketServer.cpp
+ *
+ *  Base class that WebSocket implementations must inherit from.  Handles the
+ *  client connections and calls the child class callbacks for connection
+ *  events like onConnect, onMessage, and onDisconnect
+ *
+ *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
+ *  Copyright : 2014
+ *  License   : BSD (see LICENSE)
+ *  -------------------------------------------------------------------------- 
+ **/
+
 #include <string.h>
 #include <sys/time.h>
 #include "../lib/libwebsockets.h"
