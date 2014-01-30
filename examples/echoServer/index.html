@@ -1,0 +1,83 @@
+<!-- TODO: add doctype -->
+<html>
+    <head>
+        <title>lweboscket++ echo example</title>
+        <meta name="author"    value="jason@jasonkruse.com" />
+        <meta name="copyright" value="none" />
+        <meta name="robots"    value="none" />
+        <style type="text/css">
+            * { margin: 5px; }
+        </style>
+    </head>
+    <body>
+        <h3>Send a message to the server</h3>
+        <div>
+            <p>This is a super basic example of how to connect to the websocket server.</p>
+            <ul><br />
+                <li>Compile and run the server in examples/echoServer.</li>
+                <li>
+                    Enter a message in the text box below; it will be sent to the server which 
+                    will reply back with the same message.
+                </li>
+            </ul>
+            <p><br />
+                <i>Note: </i>
+                There is no flash fallback, so make sure you have a modern browser with
+                WebSocket support.
+            </p>
+        </div>
+        <fieldset>
+            <legend>Demo</legend>
+            <input type="text" name="input" id="input" />
+            <input type="button" name="inpuBtn" id="inputBtn" value="Send" />
+            <div><u>Server responses</u></div>
+            <div id="output"></div>
+        </fieldset>
+        
+        <script type="text/javascript">
+            // Putting the js here after the dom is available in the browser because not using a framework
+            var PORT = 8080;
+            var ws = new WebSocket("ws://localhost:" + PORT );
+            var input    = document.getElementById("input");
+            var inputBtn = document.getElementById("inputBtn");
+            var output   = document.getElementById("output");
+
+            inputBtn.onclick = function( evt ){
+                sendMessage();
+            };
+
+            input.onkeypress = function( evt ){
+                var code = evt.keyCode ? evt.keyCode : evt.which;
+                if( code == 13 )
+                    sendMessage();
+            };
+
+            ws.onmessage = function( evt ){
+                addMessage( evt.data );
+            };
+
+            ws.onerror = function( evt ) { 
+                addMessage( '<i>WebSocket error :(</i>' );
+            };
+
+            ws.onopen = function( evt ) { 
+                addMessage( '<i>Connected</i>' );
+            };
+
+            ws.onclose = function( evt ) { 
+                addMessage( '<i>Disconnected</i>' );
+            };
+
+            function sendMessage( ){
+                ws.send(input.value);
+                input.value = '';
+            }
+
+            function addMessage( msg ){
+                console.log( msg );
+                output.innerHTML += msg + '<br />'; 
+            }
+        </script>
+    </body>
+</html>
+
