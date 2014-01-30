@@ -1,15 +1,6 @@
-#include <iostream>
-#include <sstream>
 #include "../../WebSocketServer.h"
 
 using namespace std;
-
-template<typename T>
-string toString(T t) {
-    stringstream s;
-    s << t;
-    return s.str();
-}
 
 // For any real project this should be defined separately in a header file
 class ChatServer : public WebSocketServer
@@ -31,7 +22,6 @@ int main(int argc, char **argv)
 
 ChatServer::ChatServer( int port ) : WebSocketServer( port )
 {
-    log( "Initializing chat server" );
 }
 
 ChatServer::~ChatServer( )

@@ -7,9 +7,15 @@
 #include <list>
 #include <syslog.h>
 #include <ctime>
+#include <iostream>
+#include <sstream>
 #include "../lib/libwebsockets.h"
 
 using namespace std;
+
+// Move to utils class if more utility functions are needed
+template<typename T>
+inline string toString(T t) { stringstream s; s << t; return s.str(); }
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

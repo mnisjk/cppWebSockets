@@ -7,9 +7,11 @@
 using namespace std;
 
 #define MAX_BUFFER_SIZE 10000
-
+#define LOG_PREFIX      "[websocket++] "
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
+
+
 
 static int callback_main(   struct libwebsocket_context *context, 
                             struct libwebsocket *wsi, 
@@ -120,28 +122,13 @@ string WebSocketServer::getValue( int socketID, const string& name )
     return this->connections[socketID]->keyValueMap[name];
 }
 
-void WebSocketServer::log( const string& message )
-{
-    //**TODO: Update to be used defined stdout
-    if( 1 )
-        printf( "%s\n", message.c_str( ) ); // << endl;
-    
-    //**TODO: Trim this message?
-    syslog( LOG_WARNING, "%s", message.c_str( ) );
-}
-
 void WebSocketServer::run( )
 {
     //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
-    //const char *iface = NULL;
-    //int use_ssl = 0;
-    char *resource_path = "blahblah";
-    //char cert_path[1024];
-    //char key_path[1024];
-    int opts = 0;
     unsigned int oldus = 0;
     
+    lws_set_log_level( 0, lwsl_emit_syslog ); // We'll do our own logging, thank you.
     struct lws_context_creation_info info;
     memset( &info, 0, sizeof info );
     info.port = this->_port;
@@ -153,23 +140,25 @@ void WebSocketServer::run( )
     
     if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
     {
+        log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
         info.ssl_cert_filepath        = this->_certPath.c_str( );
         info.ssl_private_key_filepath = this->_keyPath.c_str( );
     } 
     else 
     {
+        log( "Not using SSL" );
         info.ssl_cert_filepath        = NULL;
         info.ssl_private_key_filepath = NULL;
     }
     info.gid = -1;
     info.uid = -1;
-    info.options = opts;
+    info.options = 0;
  
     struct libwebsocket_context *context;
     context = libwebsocket_create_context( &info );
     if( !context )
         throw "libwebsocket init failed";
-    log( "WebSocket server started" ); 
+    log( "Server started on port " + toString( this->_port ) ); 
 
     // Event loop
     while( 1 )
@@ -189,6 +178,17 @@ void WebSocketServer::run( )
 void WebSocketServer::poll( uint64_t timeout )
 {
     throw "Unimplemented"; 
+}
+
+void WebSocketServer::log( const string& message )
+{
+    //**TODO: Update to be used defined stdout
+    const string& logMessage = LOG_PREFIX + message;
+    if( 1 )
+        printf( "%s\n", logMessage.c_str( ) ); // << endl;
+    
+    //**TODO: Trim this message?
+    syslog( LOG_WARNING, "%s", logMessage.c_str( ) );
 }
 
 void WebSocketServer::log( const char* message )
