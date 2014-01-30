@@ -1,6 +1,15 @@
+#include <iostream>
+#include <sstream>
 #include "../../WebSocketServer.h"
 
 using namespace std;
+
+template<typename T>
+string toString(T t) {
+    stringstream s;
+    s << t;
+    return s.str();
+}
 
 // For any real project this should be defined separately in a header file
 class ChatServer : public WebSocketServer
@@ -27,27 +36,46 @@ ChatServer::ChatServer( int port ) : WebSocketServer( port )
 
 ChatServer::~ChatServer( )
 {
-    log( "Deconstructing server" );
 }
 
 
 void ChatServer::onConnect( int socketID )
 {
-    log( "New connection" );
+    // Give this connection a random user ID
+    const string& handle = "User #" + toString( socketID );
+    log( "New connection: " + handle );
+    
+    // Associate this handle with the connection
+    this->setValue( socketID, "handle", handle );
+
+    // Let everyone know the new user has connected
+    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
+        this->send( it->first, handle + " has connected." );
 }
 
 void ChatServer::onMessage( int socketID, const string& data )
 {
-    // Reply back with the same message
+    // Send the received message to all connected clients in the form of 'User XX: message...'
     log( "Received: " + data );
+    const string& message = this->getValue( socketID, "handle" ) + ": " + data;
+
+    // Iterate over the connections and send the message
     for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
-        this->send( it->first, data );
+        this->send( it->first, message );
 }
 
 void ChatServer::onDisconnect( int socketID )
 {
-    log( "Disconnect" );
-
+    const string& handle = this->getValue( socketID, "handle" );
+    log( "Disconnected: " + handle );
+    
+    // Let everyone know the user has disconnected
+    const string& message = handle + " has disconnected.";
+    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
+        if( it->first != socketID )
+            // The disconnected connection gets deleted after this function runs, so don't try to send to it
+            // (It's still around in case the implementing class wants to perform any clean up actions)
+            this->send( it->first, message );
 }
 
 void ChatServer::onError( int socketID, const string& message )

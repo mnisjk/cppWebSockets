@@ -27,7 +27,6 @@ EchoServer::EchoServer( int port ) : WebSocketServer( port )
 
 EchoServer::~EchoServer( )
 {
-    log( "Deconstructing server" );
 }
 
 

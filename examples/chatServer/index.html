@@ -7,18 +7,26 @@
         <meta name="robots"    value="none" />
         <style type="text/css">
             * { margin: 5px; }
+            textarea {
+                display: block;
+                width:   80%;
+                margin:  0;
+                height:  200px;
+            }
+            
         </style>
     </head>
     <body>
-        <h3>Send a message to the server</h3>
+        <h3>Basic chat server</h3>
         <div>
-            <p>This is a super basic example of how to connect to the websocket server.</p>
+            <p>
+                This is a super basic example of a chat server using lwebsockets++. This also
+                shows how to use the key => value storage to associate data with a connection.    
+            </p>
             <ul><br />
-                <li>Compile and run the server in examples/echoServer.</li>
-                <li>
-                    Enter a message in the text box below; it will be sent to the server which 
-                    will reply back with the same message.
-                </li>
+                <li>Compile and run the server in examples/chatServer.</li>
+                <li>Open this page in multiple tabs.</li>
+                <li>Start chatting with yourself</li>
             </ul>
             <p><br />
                 <i>Note: </i>
@@ -28,10 +36,10 @@
         </div>
         <fieldset>
             <legend>Demo</legend>
-            <input type="text" name="input" id="input" />
+            <textarea id="output" readonly></textarea>
+            <textarea id="input" placeholder="Enter a message"></textarea>
             <input type="button" name="inpuBtn" id="inputBtn" value="Send" />
             <div><u>Server responses</u></div>
-            <div id="output"></div>
         </fieldset>
         
         <script type="text/javascript">
@@ -48,8 +56,10 @@
 
             input.onkeypress = function( evt ){
                 var code = evt.keyCode ? evt.keyCode : evt.which;
-                if( code == 13 )
+                if( code == 13 ){
+                    evt.preventDefault();
                     sendMessage();
+                }
             };
 
             ws.onmessage = function( evt ){
@@ -57,15 +67,15 @@
             };
 
             ws.onerror = function( evt ) { 
-                addMessage( '<i>WebSocket error :(</i>' );
+                addMessage( 'WebSocket error :(' );
             };
 
             ws.onopen = function( evt ) { 
-                addMessage( '<i>Connected</i>' );
+                // Unused
             };
 
             ws.onclose = function( evt ) { 
-                addMessage( '<i>Disconnected</i>' );
+                addMessage( 'You disconnected' );
             };
 
             function sendMessage( ){
@@ -74,7 +84,8 @@
             }
 
             function addMessage( msg ){
-                output.innerHTML += msg + '<br />'; 
+                output.value += msg + "\n"; 
+                output.scrollTop = output.scrollHeight;
             }
         </script>
     </body>
