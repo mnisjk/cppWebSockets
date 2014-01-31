@@ -114,7 +114,7 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     this->_context = libwebsocket_create_context( &info );
     if( !this->_context )
         throw "libwebsocket init failed";
- 
+    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
 
     // Some of the libwebsocket stuff is define statically outside the class. This 
     // allows us to call instance variables from the outside.  Unfortunately this
@@ -168,9 +168,6 @@ string WebSocketServer::getValue( int socketID, const string& name )
 void WebSocketServer::run( )
 {
     //**TODO take in options via command line
-    // Only create the server context once we start the server
-    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
-
     unsigned int oldus = 0;
 
     // Event loop
@@ -188,28 +185,31 @@ void WebSocketServer::run( )
     }
 }
 
-void WebSocketServer::poll( uint64_t timeout )
+// Maintains state for polling socket FDs
+struct pollfd *pollfds; 
+int count_pollfds;
+struct timeval tv;
+unsigned int oldus = 0;
+bool WebSocketServer::wait( uint64_t timeout )
 {
-    // Only create the server context once we start the server
-    if( !this->_context )
-        throw "libwebsocket init failed";
-    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
-
-    unsigned int oldus = 0;
-
-    // Event loop
-    while( 1 )
+    
+    gettimeofday( &tv, NULL );
+    if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
     {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
-        {
-            libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
-            oldus = tv.tv_usec;
-        }
-        if( libwebsocket_service( this->_context, 50 ) < 0 )
-            throw "Error polling for socket activity.";
+        libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
+        oldus = tv.tv_usec;
     }
+    int n = poll( pollfds, count_pollfds, timeout );
+    if( n < 0 ) return true;
+    if( n )
+        for( n = 0; n < count_pollfds; n++ )
+            if( pollfds[n].revents )
+                if( libwebsocket_service_fd( this->_context, &pollfds[n] ) < 0 )
+                {
+                    libwebsocket_context_destroy( this->_context );
+                    return false;
+                }
+    return true; 
 }
 
 

@@ -19,6 +19,7 @@
 #include <list>
 #include <stdio.h>
 #include <ctime>
+#include <sys/time.h>
 #include <iostream>
 #include <sstream>
 #include "../lib/libwebsockets.h"
@@ -49,7 +50,7 @@ public:
     ~WebSocketServer( );
     
     void run( );
-    void poll( uint64_t timeout = 1000 );
+    bool wait( uint64_t timeout = 50 );
     void send( int socketID, string data );
     
     // Key => value storage for each connection
