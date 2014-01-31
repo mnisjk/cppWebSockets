@@ -3,7 +3,7 @@
  *
  *  Base class that WebSocket implementations must inherit from.  Handles the
  *  client connections and calls the child class callbacks for connection
- *  events like onConnect, onMessage, and onDisconnect
+ *  events like onConnect, onMessage, and onDisconnect.
  *
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
@@ -86,6 +86,32 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     this->_certPath = certPath;
     this->_keyPath  = keyPath; 
 
+    lws_set_log_level( 0, lwsl_emit_syslog ); // We'll do our own logging, thank you.
+    memset( &this->_info, 0, sizeof this->_info );
+    this->_info.port = this->_port;
+    this->_info.iface = NULL;
+    this->_info.protocols = protocols;
+#ifndef LWS_NO_EXTENSIONS
+    this->_info.extensions = libwebsocket_get_internal_extensions( );
+#endif
+    
+    if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
+    {
+        Util::log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
+        this->_info.ssl_cert_filepath        = this->_certPath.c_str( );
+        this->_info.ssl_private_key_filepath = this->_keyPath.c_str( );
+    } 
+    else 
+    {
+        Util::log( "Not using SSL" );
+        this->_info.ssl_cert_filepath        = NULL;
+        this->_info.ssl_private_key_filepath = NULL;
+    }
+    this->_info.gid = -1;
+    this->_info.uid = -1;
+    this->_info.options = 0;
+ 
+
     // Some of the libwebsocket stuff is define statically outside the class. This 
     // allows us to call instance variables from the outside.  Unfortunately this
     // means some attributes must be public that otherwise would be private. 
@@ -139,39 +165,12 @@ void WebSocketServer::run( )
 {
     //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
-    unsigned int oldus = 0;
-    
-    lws_set_log_level( 0, lwsl_emit_syslog ); // We'll do our own logging, thank you.
-    struct lws_context_creation_info info;
-    memset( &info, 0, sizeof info );
-    info.port = this->_port;
-    info.iface = NULL;
-    info.protocols = protocols;
-#ifndef LWS_NO_EXTENSIONS
-    info.extensions = libwebsocket_get_internal_extensions( );
-#endif
-    
-    if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
-    {
-        Util::log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
-        info.ssl_cert_filepath        = this->_certPath.c_str( );
-        info.ssl_private_key_filepath = this->_keyPath.c_str( );
-    } 
-    else 
-    {
-        Util::log( "Not using SSL" );
-        info.ssl_cert_filepath        = NULL;
-        info.ssl_private_key_filepath = NULL;
-    }
-    info.gid = -1;
-    info.uid = -1;
-    info.options = 0;
- 
-    struct libwebsocket_context *context;
-    context = libwebsocket_create_context( &info );
-    if( !context )
+    this->_context = libwebsocket_create_context( &this->_info );
+    if( !this->_context )
         throw "libwebsocket init failed";
     Util::log( "Server started on port " + Util::toString( this->_port ) ); 
+
+    unsigned int oldus = 0;
 
     // Event loop
     while( 1 )
@@ -183,7 +182,7 @@ void WebSocketServer::run( )
             libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
             oldus = tv.tv_usec;
         }
-        if( libwebsocket_service( context, 50 ) < 0 )
+        if( libwebsocket_service( this->_context, 50 ) < 0 )
             throw "Error polling for socket activity.";
     }
 }

@@ -3,7 +3,7 @@
  *
  *  Base class that WebSocket implementations must inherit from.  Handles the
  *  client connections and calls the child class callbacks for connection
- *  events like onConnect, onMessage, and onDisconnect
+ *  events like onConnect, onMessage, and onDisconnect.
  *
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
@@ -68,14 +68,14 @@ public:
     void onDisconnectWrapper( int socketID );
 
 protected:
-    
-    void log( const string& message );
-    void log( const char* message );
+    // Nothing, yet.
 
 private:
-    int    _port;    
-    string _keyPath;
-    string _certPath;
+    int                              _port;    
+    string                           _keyPath;
+    string                           _certPath;
+    struct lws_context_creation_info _info;
+    struct libwebsocket_context     *_context;
 };
 
 // WebSocketServer.h
