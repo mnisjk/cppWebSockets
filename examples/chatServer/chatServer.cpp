@@ -30,7 +30,7 @@ public:
     virtual void   onError(    int socketID, const string& message );
 };
 
-int main(int argc, char **argv)
+int main( int argc, char **argv )
 {
     ChatServer cs = ChatServer( 8080 );
     cs.run( );

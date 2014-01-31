@@ -27,7 +27,7 @@ public:
     virtual void   onError(    int socketID, const string& message );
 };
 
-int main(int argc, char **argv)
+int main( int argc, char **argv )
 {
     EchoServer es = EchoServer( 8080 );
     es.run( );
