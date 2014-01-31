@@ -71,11 +71,10 @@ protected:
     // Nothing, yet.
 
 private:
-    int                              _port;    
-    string                           _keyPath;
-    string                           _certPath;
-    struct lws_context_creation_info _info;
-    struct libwebsocket_context     *_context;
+    int                          _port;    
+    string                       _keyPath;
+    string                       _certPath;
+    struct libwebsocket_context *_context;
 };
 
 // WebSocketServer.h

@@ -11,6 +11,7 @@
  *  -------------------------------------------------------------------------- 
  **/
 
+#include "../../Util.h"
 #include "../../WebSocketServer.h"
 
 using namespace std;
@@ -44,24 +45,24 @@ EchoServer::~EchoServer( )
 
 void EchoServer::onConnect( int socketID )
 {
-    log( "New connection" );
+    Util::log( "New connection" );
 }
 
 void EchoServer::onMessage( int socketID, const string& data )
 {
     // Reply back with the same message
-    log( "Received: " + data );
+    Util::log( "Received: " + data );
     this->send( socketID, data );
 }
 
 void EchoServer::onDisconnect( int socketID )
 {
-    log( "Disconnect" );
+    Util::log( "Disconnect" );
 }
 
 void EchoServer::onError( int socketID, const string& message )
 {
-    log( "Error: " + message );
+    Util::log( "Error: " + message );
 }
 
 

@@ -87,29 +87,33 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     this->_keyPath  = keyPath; 
 
     lws_set_log_level( 0, lwsl_emit_syslog ); // We'll do our own logging, thank you.
-    memset( &this->_info, 0, sizeof this->_info );
-    this->_info.port = this->_port;
-    this->_info.iface = NULL;
-    this->_info.protocols = protocols;
+    struct lws_context_creation_info info;
+    memset( &info, 0, sizeof info );
+    info.port = this->_port;
+    info.iface = NULL;
+    info.protocols = protocols;
 #ifndef LWS_NO_EXTENSIONS
-    this->_info.extensions = libwebsocket_get_internal_extensions( );
+    info.extensions = libwebsocket_get_internal_extensions( );
 #endif
     
     if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
     {
         Util::log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
-        this->_info.ssl_cert_filepath        = this->_certPath.c_str( );
-        this->_info.ssl_private_key_filepath = this->_keyPath.c_str( );
+        info.ssl_cert_filepath        = this->_certPath.c_str( );
+        info.ssl_private_key_filepath = this->_keyPath.c_str( );
     } 
     else 
     {
         Util::log( "Not using SSL" );
-        this->_info.ssl_cert_filepath        = NULL;
-        this->_info.ssl_private_key_filepath = NULL;
+        info.ssl_cert_filepath        = NULL;
+        info.ssl_private_key_filepath = NULL;
     }
-    this->_info.gid = -1;
-    this->_info.uid = -1;
-    this->_info.options = 0;
+    info.gid = -1;
+    info.uid = -1;
+    info.options = 0;
+    this->_context = libwebsocket_create_context( &info );
+    if( !this->_context )
+        throw "libwebsocket init failed";
  
 
     // Some of the libwebsocket stuff is define statically outside the class. This 
@@ -163,11 +167,8 @@ string WebSocketServer::getValue( int socketID, const string& name )
 
 void WebSocketServer::run( )
 {
-    //**TODO update these to more c++ things/have a config
     //**TODO take in options via command line
-    this->_context = libwebsocket_create_context( &this->_info );
-    if( !this->_context )
-        throw "libwebsocket init failed";
+    // Only create the server context once we start the server
     Util::log( "Server started on port " + Util::toString( this->_port ) ); 
 
     unsigned int oldus = 0;
@@ -189,7 +190,26 @@ void WebSocketServer::run( )
 
 void WebSocketServer::poll( uint64_t timeout )
 {
-    throw "Unimplemented"; 
+    // Only create the server context once we start the server
+    if( !this->_context )
+        throw "libwebsocket init failed";
+    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
+
+    unsigned int oldus = 0;
+
+    // Event loop
+    while( 1 )
+    {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
+        {
+            libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
+            oldus = tv.tv_usec;
+        }
+        if( libwebsocket_service( this->_context, 50 ) < 0 )
+            throw "Error polling for socket activity.";
+    }
 }
 
 
