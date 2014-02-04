@@ -49,8 +49,8 @@ public:
     WebSocketServer( int port, const string certPath = "", const string& keyPath = "" );
     ~WebSocketServer( );
     
-    void run( );
-    bool wait( uint64_t timeout = 50 );
+    void run(  uint64_t timeout = 50     );
+    bool wait( uint64_t timeout = 50     );
     void send( int socketID, string data );
     
     // Key => value storage for each connection

@@ -11,20 +11,21 @@
  *  -------------------------------------------------------------------------- 
  **/
 
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <fcntl.h>
 #include "../lib/libwebsockets.h"
 #include "Util.h"
 #include "WebSocketServer.h"
 
 using namespace std;
 
-#define MAX_BUFFER_SIZE 10000
+// 0 for unlimited
+#define MAX_BUFFER_SIZE 0
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
-
-
 
 static int callback_main(   struct libwebsocket_context *context, 
                             struct libwebsocket *wsi, 
@@ -37,9 +38,10 @@ static int callback_main(   struct libwebsocket_context *context,
     unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
     unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
     
-    switch (reason) {
+    switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnectWrapper( libwebsocket_get_socket_fd( wsi ) );
+            libwebsocket_callback_on_writable( context, wsi );
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
@@ -50,11 +52,13 @@ static int callback_main(   struct libwebsocket_context *context,
                 n = sprintf( (char *)p, "%s", message.c_str( ) );
                 m = libwebsocket_write( wsi, p, n, LWS_WRITE_TEXT );
                 if( m < n ) 
+                    //**TODO: on error wrapper that closes the connection?
                     self->onError( fd, "Error writing to socket" );
                 else
                     // Only pop the message if it was sent successfully.
                     self->connections[fd]->buffer.pop_front( ); 
             }
+            libwebsocket_callback_on_writable( context, wsi );
             break;
         
         case LWS_CALLBACK_RECEIVE:
@@ -62,9 +66,9 @@ static int callback_main(   struct libwebsocket_context *context,
             break;
 
         case LWS_CALLBACK_CLOSED:
-            self->onDisconnect( libwebsocket_get_socket_fd( wsi ) );
+            self->onDisconnectWrapper( libwebsocket_get_socket_fd( wsi ) );
             break;
-        
+
         default:
             break;
     }
@@ -165,51 +169,19 @@ string WebSocketServer::getValue( int socketID, const string& name )
     return this->connections[socketID]->keyValueMap[name];
 }
 
-void WebSocketServer::run( )
+void WebSocketServer::run( uint64_t timeout )
 {
-    //**TODO take in options via command line
-    unsigned int oldus = 0;
-
     // Event loop
     while( 1 )
     {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
-        {
-            libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
-            oldus = tv.tv_usec;
-        }
-        if( libwebsocket_service( this->_context, 50 ) < 0 )
-            throw "Error polling for socket activity.";
+        this->wait( timeout );
     }
 }
 
-// Maintains state for polling socket FDs
-struct pollfd *pollfds; 
-int count_pollfds;
-struct timeval tv;
-unsigned int oldus = 0;
 bool WebSocketServer::wait( uint64_t timeout )
 {
-    
-    gettimeofday( &tv, NULL );
-    if( ( (unsigned int)tv.tv_usec - oldus ) > 50000 ) 
-    {
-        libwebsocket_callback_on_writable_all_protocol( &protocols[0] );
-        oldus = tv.tv_usec;
-    }
-    int n = poll( pollfds, count_pollfds, timeout );
-    if( n < 0 ) return true;
-    if( n )
-        for( n = 0; n < count_pollfds; n++ )
-            if( pollfds[n].revents )
-                if( libwebsocket_service_fd( this->_context, &pollfds[n] ) < 0 )
-                {
-                    libwebsocket_context_destroy( this->_context );
-                    return false;
-                }
-    return true; 
+    if( libwebsocket_service( this->_context, timeout ) < 0 )
+        throw "Error polling for socket activity.";
 }
 
 
