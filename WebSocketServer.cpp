@@ -34,7 +34,7 @@ static int callback_main(   struct libwebsocket_context *context,
                             void *in, 
                             size_t len )
 {
-    int n, m, fd;
+    int fd;
     unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
     unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
     
@@ -49,9 +49,8 @@ static int callback_main(   struct libwebsocket_context *context,
             while( !self->connections[fd]->buffer.empty( ) )
             {
                 string message = self->connections[fd]->buffer.front( ); 
-                n = sprintf( (char *)p, "%s", message.c_str( ) );
-                m = libwebsocket_write( wsi, p, n, LWS_WRITE_TEXT );
-                if( m < n ) 
+                int charsSent = libwebsocket_write( wsi, (unsigned char*)message.c_str( ), message.length( ), LWS_WRITE_TEXT );
+                if( charsSent < message.length( ) ) 
                     //**TODO: on error wrapper that closes the connection?
                     self->onError( fd, "Error writing to socket" );
                 else
