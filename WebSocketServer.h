@@ -67,6 +67,7 @@ public:
     // Wrappers, so we can take care of some maintenance
     void onConnectWrapper(    int socketID );
     void onDisconnectWrapper( int socketID );
+    void onErrorWrapper( int socketID, const string& message );
 
 protected:
     // Nothing, yet.
@@ -76,6 +77,8 @@ private:
     string                       _keyPath;
     string                       _certPath;
     struct libwebsocket_context *_context;
+    
+    void _removeConnection( int socketID );
 };
 
 // WebSocketServer.h

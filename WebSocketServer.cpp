@@ -51,8 +51,7 @@ static int callback_main(   struct libwebsocket_context *context,
                 string message = self->connections[fd]->buffer.front( ); 
                 int charsSent = libwebsocket_write( wsi, (unsigned char*)message.c_str( ), message.length( ), LWS_WRITE_TEXT );
                 if( charsSent < message.length( ) ) 
-                    //**TODO: on error wrapper that closes the connection?
-                    self->onError( fd, "Error writing to socket" );
+                    self->onErrorWrapper( fd, string( "Error writing to socket" ) );
                 else
                     // Only pop the message if it was sent successfully.
                     self->connections[fd]->buffer.pop_front( ); 
@@ -147,9 +146,14 @@ void WebSocketServer::onConnectWrapper( int socketID )
 void WebSocketServer::onDisconnectWrapper( int socketID )
 {
     this->onDisconnect( socketID );
-    Connection* c = this->connections[ socketID ];
-    this->connections.erase( socketID );
-    delete c;
+    this->_removeConnection( socketID );
+}
+
+void WebSocketServer::onErrorWrapper( int socketID, const string& message )
+{
+    Util::log( "Error: " + message + " on socketID '" + Util::toString( socketID ) + "'" ); 
+    this->onError( socketID, message );
+    this->_removeConnection( socketID );
 }
 
 void WebSocketServer::send( int socketID, string data )
@@ -183,5 +187,11 @@ bool WebSocketServer::wait( uint64_t timeout )
         throw "Error polling for socket activity.";
 }
 
+void WebSocketServer::_removeConnection( int socketID )
+{
+    Connection* c = this->connections[ socketID ];
+    this->connections.erase( socketID );
+    delete c;
+}
 
 
