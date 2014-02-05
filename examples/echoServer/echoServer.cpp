@@ -11,6 +11,9 @@
  *  -------------------------------------------------------------------------- 
  **/
 
+// Log to stdout for easy debugging.
+#define LOG_TO_STDOUT 1
+
 #include "../../Util.h"
 #include "../../WebSocketServer.h"
 

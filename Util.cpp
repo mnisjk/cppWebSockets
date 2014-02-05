@@ -18,13 +18,12 @@ using namespace std;
 
 void Util::log( const string& message )
 {
-    //**TODO: Update to be used defined stdout
     const string& logMessage = LOG_PREFIX + message;
-    if( 1 )
-        printf( "%s\n", logMessage.c_str( ) ); // << endl;
-    
-    //**TODO: Trim this message?
     syslog( LOG_WARNING, "%s", logMessage.c_str( ) );
+
+#ifdef LOG_TO_STDOUT
+        printf( "%s\n", logMessage.c_str( ) );
+#endif 
 }
 
 void Util::log( const char* message )
