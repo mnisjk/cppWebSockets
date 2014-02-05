@@ -50,12 +50,14 @@ public:
     ~WebSocketServer( );
     
     void run(  uint64_t timeout = 50     );
-    bool wait( uint64_t timeout = 50     );
+    void wait( uint64_t timeout = 50     );
     void send( int socketID, string data );
+    void broadcast( string data );
     
     // Key => value storage for each connection
     string getValue( int socketID, const string& name );
     void   setValue( int socketID, const string& name, const string& value );
+    int    getNumberOfConnections( );
 
     // Overridden by children
     virtual void onConnect(    int socketID                        ) = 0;

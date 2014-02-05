@@ -55,8 +55,7 @@ void ChatServer::onConnect( int socketID )
     this->setValue( socketID, "handle", handle );
 
     // Let everyone know the new user has connected
-    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
-        this->send( it->first, handle + " has connected." );
+    this->broadcast( handle + " has connected." );
 }
 
 void ChatServer::onMessage( int socketID, const string& data )

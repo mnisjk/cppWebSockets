@@ -162,6 +162,12 @@ void WebSocketServer::send( int socketID, string data )
     this->connections[socketID]->buffer.push_back( data );
 }
 
+void WebSocketServer::broadcast( string data )
+{
+    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
+        this->send( it->first, data );
+}
+
 void WebSocketServer::setValue( int socketID, const string& name, const string& value )
 {
     this->connections[socketID]->keyValueMap[name] = value;
@@ -171,17 +177,20 @@ string WebSocketServer::getValue( int socketID, const string& name )
 {
     return this->connections[socketID]->keyValueMap[name];
 }
+int WebSocketServer::getNumberOfConnections( )
+{
+    return this->connections.size( );
+}
 
 void WebSocketServer::run( uint64_t timeout )
 {
-    // Event loop
     while( 1 )
     {
         this->wait( timeout );
     }
 }
 
-bool WebSocketServer::wait( uint64_t timeout )
+void WebSocketServer::wait( uint64_t timeout )
 {
     if( libwebsocket_service( this->_context, timeout ) < 0 )
         throw "Error polling for socket activity.";
