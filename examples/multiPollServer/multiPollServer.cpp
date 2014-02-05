@@ -8,10 +8,9 @@
  *  It also demonstrates how to send to an arbitrary WebSocket connection at
  *  any time.
  *
- *  This program listens for input on stdin and directs all input to a named
- *  pipe.  It also forks and creates a WebSocket server listening on port 8080
- *  and listens for data on the mentioned named pipe. When data comes in, it 
- *  sends it out to all connected clients.
+ *  This program listens for input on stdin and WebSockets on port 8080 
+ *  simultaneously. When new data is available on stdin (line buffered),
+ *  it sends that string out to all connected WebSocket clients.
  *
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
@@ -20,14 +19,13 @@
  **/
 
 #include <string>
-#include <algorithm>
 #include <fcntl.h>
 #include "../../Util.h"
 #include "../../WebSocketServer.h"
 
-#define TIMEOUT    1000
-#define NAMED_PIPE "/tmp/lwebsocket-example"
+#define TIMEOUT    50
 #define PROMPT     "message> "
+
 using namespace std;
 
 // For any real project this should be defined separately in a header file
@@ -105,9 +103,7 @@ void MultiPollServer::onConnect( int socketID )
 
 void MultiPollServer::onMessage( int socketID, const string& data )
 {
-    // Reply back with the same message
-    Util::log( "Received: " + data );
-    this->send( socketID, data );
+    // Should never get hit.
 }
 
 void MultiPollServer::onDisconnect( int socketID )
