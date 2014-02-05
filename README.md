@@ -43,8 +43,15 @@ Check out the [examples](https://github.com/mnisjk/cppWebSockets/blob/master/exa
 
 ### Dependencies
 
-This is built on top of [warmcat](http://warmcat.com/)'s wonderful, lightweight [libwebsocket](http://libwebsockets.org/) c library.  Follow the instructions on [his site](http://libwebsockets.org/) to install. On Linux, make sure you have the header file `/usr/local/include/libwebsockets.h` and the library files `/usr/local/lib/libwebsockets.so*`
+This is built on top of [warmcat](http://warmcat.com/)'s wonderful, lightweight [libwebsocket](http://libwebsockets.org/) c library.  To install:
 
+```
+mnisjk@localdev ~ $ git clone git://git.libwebsockets.org/libwebsockets
+mnisjk@localdev ~ $ cd libwebsockets
+mnisjk@localdev libwebsockets $ cmake .
+mnisjk@localdev libwebsockets $ make
+mnisjk@localdev libwebsockets $ sudo make install
+```
 
 ### Compile and run
 
