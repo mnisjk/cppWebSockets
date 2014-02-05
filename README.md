@@ -39,7 +39,7 @@ Check out the `examples` directory for fully implemented illustrations.  There i
 * WebSocket RFC6455 implementation
 * Abstracts away all c pointers and managing when sockets are writable
 * Push data to any client at any time
-* Key --> Value storage for any socket with `setValue( int socketID, const string& name, const string& value );` and `getValue( int socketID, const string& name );`
+* Key => Value storage for any socket with `setValue( int socketID, const string& name, const string& value );` and `getValue( int socketID, const string& name );`
 
 
 ### Dependencies
