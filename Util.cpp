@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define LOG_PREFIX      "[websocket++] "
+#define LOG_PREFIX      "[cppWebSockets] "
 
 void Util::log( const string& message )
 {
