@@ -1,7 +1,7 @@
-websocket++
+cppWebSockets
 ===========
 
-A simple, lightweight c++ wrapper around the popular libwebsockets c library.
+A simple, lightweight c++ WebSockets server library wrapped around the popular libwebsockets c library. 
 
 ### Usage
 
@@ -12,24 +12,23 @@ void onConnect(    int socketID                        ); // New websocket conne
 void onMessage(    int socketID, const string& data    ); // Message received from connected client
 void onDisconnect( int socketID                        ); // Client disconnect
 void   onError(    int socketID, const string& message ); // Networking error
-
 ```
 
 Then simply instantiate your server and call `run()` 
 
 ```
-MyServer s = MyServer( 8080 /* bind to port 8080 */ ); // MyServer extends WebSocketServer
+MyServer s = MyServer( 8080 ); // MyServer extends WebSocketServer listening on port 8080
 s.run( );
 ```
 
 At any arbitrary time, you can push a message to a client by calling `send( int socketID, string data )`.
 
-If your server is more complex and needs to monitor its own connections in addition to WebSocket connections, you can manage your own event loop. Instead of calling `s.run( )`, use the `s.wait( )` function.  A good illustration of this is located in `examples/multiPollServer/`
+If your server is more complex and needs to monitor its own connections in addition to WebSocket connections, you can manage your own event loop. Instead of calling `s.run( )`, use the `s.wait( )` function.  A good illustration of this is located in [examples/multiPollServer/multiPollServer.cpp](/mnisjk/cppWebSockets/blob/master/examples/multiPollServer/multiPollServer.cpp)
 
 
 ### Examples
 
-Check out the `examples` directory for fully implemented illustrations.  There is a basic echo and chat server as well as a more complex server that manages multiple `poll( )` loops. They should demonstrate how easy this library is to use and serve as basic scaffolding for your projects.
+Check out the [examples](/mnisjk/cppWebSockets/blob/master/examples/) directory for fully implemented illustrations.  There is a basic echo and chat server as well as a more complex server that manages multiple `poll( )` loops. They should demonstrate how easy this library is to use and serve as basic scaffolding for your projects.
 
 
 ### Features
