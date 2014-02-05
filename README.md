@@ -1,7 +1,7 @@
 websocket++
 ===========
 
-A simple c++ wrapper around the popular libwebsockets c library.
+A simple, lightweight c++ wrapper around the popular libwebsockets c library.
 
 ### Usage
 
@@ -35,7 +35,9 @@ Check out the `examples` directory for fully implemented illustrations.  There i
 ### Features
 
 * Implement your own web socket server in less than 50 lines of c++.
-* Abstracts away all c pointers and managing when sockets are writable.
+* OpenSSL support
+* WebSocket RFC6455 implementation
+* Abstracts away all c pointers and managing when sockets are writable
 * Push data to any client at any time
 * Key --> Value storage for any socket with `setValue( int socketID, const string& name, const string& value );` and `getValue( int socketID, const string& name );`
 
