@@ -23,12 +23,12 @@ s.run( );
 
 At any arbitrary time, you can push a message to a client by calling `send( int socketID, string data )`.
 
-If your server is more complex and needs to monitor its own connections in addition to WebSocket connections, you can manage your own event loop. Instead of calling `s.run( )`, use the `s.wait( )` function.  A good illustration of this is located in [examples/multiPollServer/multiPollServer.cpp](/mnisjk/cppWebSockets/blob/master/examples/multiPollServer/multiPollServer.cpp)
+If your server is more complex and needs to monitor its own connections in addition to WebSocket connections, you can manage your own event loop. Instead of calling `s.run( )`, use the `s.wait( )` function.  A good illustration of this is located in [examples/multiPollServer/multiPollServer.cpp](https://github.com/mnisjk/cppWebSockets/blob/master/examples/multiPollServer/multiPollServer.cpp)
 
 
 ### Examples
 
-Check out the [examples](/mnisjk/cppWebSockets/blob/master/examples/) directory for fully implemented illustrations.  There is a basic echo and chat server as well as a more complex server that manages multiple `poll( )` loops. They should demonstrate how easy this library is to use and serve as basic scaffolding for your projects.
+Check out the [examples](https://github.com/mnisjk/cppWebSockets/blob/master/examples/) directory for fully implemented illustrations.  There is a basic echo and chat server as well as a more complex server that manages multiple `poll( )` loops. They should demonstrate how easy this library is to use and serve as basic scaffolding for your projects.
 
 
 ### Features
