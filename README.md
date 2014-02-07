@@ -55,6 +55,6 @@ mnisjk@localdev libwebsockets $ sudo make install
 All examples have Makefiles, so simply run `make` and then run the example.  When creating your own projects, your compile commands will look like the following:
 
 ```
-g++ -w -DLOG_TO_STDOUT=1 -omyserver Util.cpp WebSocketServer.cpp myserver.cpp -lwebsockets
-./myserver
+mnisjk@localdev ~ $ g++ -w -DLOG_TO_STDOUT=1 -omyserver Util.cpp WebSocketServer.cpp myserver.cpp -lwebsockets
+mnisjk@localdev ~ $ ./myserver
 ```
