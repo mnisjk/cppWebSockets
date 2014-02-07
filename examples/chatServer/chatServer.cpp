@@ -67,9 +67,7 @@ void ChatServer::onMessage( int socketID, const string& data )
     Util::log( "Received: " + data );
     const string& message = this->getValue( socketID, "handle" ) + ": " + data;
 
-    // Iterate over the connections and send the message
-    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
-        this->send( it->first, message );
+    this->broadcast( message );
 }
 
 void ChatServer::onDisconnect( int socketID )
