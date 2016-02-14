@@ -27,9 +27,8 @@ using namespace std;
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
 
-static int callback_main(   struct libwebsocket_context *context, 
-                            struct libwebsocket *wsi, 
-                            enum libwebsocket_callback_reasons reason, 
+static int callback_main(   struct lws *wsi, 
+                            enum lws_callback_reasons reason, 
                             void *user, 
                             void *in, 
                             size_t len )
@@ -40,31 +39,31 @@ static int callback_main(   struct libwebsocket_context *context,
     
     switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
-            self->onConnectWrapper( libwebsocket_get_socket_fd( wsi ) );
-            libwebsocket_callback_on_writable( context, wsi );
+            self->onConnectWrapper( lws_get_socket_fd( wsi ) );
+            lws_callback_on_writable( wsi );
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
-            fd = libwebsocket_get_socket_fd( wsi );
+            fd = lws_get_socket_fd( wsi );
             while( !self->connections[fd]->buffer.empty( ) )
             {
                 string message = self->connections[fd]->buffer.front( ); 
-                int charsSent = libwebsocket_write( wsi, (unsigned char*)message.c_str( ), message.length( ), LWS_WRITE_TEXT );
+                int charsSent = lws_write( wsi, (unsigned char*)message.c_str( ), message.length( ), LWS_WRITE_TEXT );
                 if( charsSent < message.length( ) ) 
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
                 else
                     // Only pop the message if it was sent successfully.
                     self->connections[fd]->buffer.pop_front( ); 
             }
-            libwebsocket_callback_on_writable( context, wsi );
+            lws_callback_on_writable( wsi );
             break;
         
         case LWS_CALLBACK_RECEIVE:
-            self->onMessage( libwebsocket_get_socket_fd( wsi ), string( (const char *)in ) );
+            self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in ) );
             break;
 
         case LWS_CALLBACK_CLOSED:
-            self->onDisconnectWrapper( libwebsocket_get_socket_fd( wsi ) );
+            self->onDisconnectWrapper( lws_get_socket_fd( wsi ) );
             break;
 
         default:
@@ -73,7 +72,7 @@ static int callback_main(   struct libwebsocket_context *context,
     return 0;
 }
 
-static struct libwebsocket_protocols protocols[] = {
+static struct lws_protocols protocols[] = {
     {
         "/",
         callback_main,
@@ -95,7 +94,7 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     info.iface = NULL;
     info.protocols = protocols;
 #ifndef LWS_NO_EXTENSIONS
-    info.extensions = libwebsocket_get_internal_extensions( );
+    info.extensions = lws_get_internal_extensions( );
 #endif
     
     if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
@@ -113,7 +112,12 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     info.gid = -1;
     info.uid = -1;
     info.options = 0;
-    this->_context = libwebsocket_create_context( &info );
+
+    // keep alive
+    info.ka_time = 60; // 60 seconds until connection is suspicious
+    info.ka_probes = 10; // 10 probes after ^ time
+    info.ka_interval = 10; // 10s interval for sending probes
+    this->_context = lws_create_context( &info );
     if( !this->_context )
         throw "libwebsocket init failed";
     Util::log( "Server started on port " + Util::toString( this->_port ) ); 
@@ -192,7 +196,7 @@ void WebSocketServer::run( uint64_t timeout )
 
 void WebSocketServer::wait( uint64_t timeout )
 {
-    if( libwebsocket_service( this->_context, timeout ) < 0 )
+    if( lws_service( this->_context, timeout ) < 0 )
         throw "Error polling for socket activity.";
 }
 
@@ -202,5 +206,3 @@ void WebSocketServer::_removeConnection( int socketID )
     this->connections.erase( socketID );
     delete c;
 }
-
-
