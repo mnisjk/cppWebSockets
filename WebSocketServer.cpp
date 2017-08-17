@@ -48,8 +48,9 @@ static int callback_main(   struct lws *wsi,
             while( !self->connections[fd]->buffer.empty( ) )
             {
                 string message = self->connections[fd]->buffer.front( ); 
-                int charsSent = lws_write( wsi, (unsigned char*)message.c_str( ), message.length( ), LWS_WRITE_TEXT );
-                if( charsSent < message.length( ) ) 
+                int msgLen = message.length();
+                int charsSent = lws_write( wsi, (unsigned char*)message.c_str(), msgLen, LWS_WRITE_TEXT );
+                if( charsSent < msgLen )
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
                 else
                     // Only pop the message if it was sent successfully.
