@@ -23,7 +23,7 @@
 using namespace std;
 
 // 0 for unlimited
-#define MAX_BUFFER_SIZE 131072
+#define MAX_BUFFER_SIZE 0
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
