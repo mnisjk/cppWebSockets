@@ -8,15 +8,14 @@
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
  *  License   : BSD (see LICENSE)
- *  -------------------------------------------------------------------------- 
+ *  --------------------------------------------------------------------------
  **/
 
 #ifndef _WEBSOCKETSERVER_H
 #define _WEBSOCKETSERVER_H
 #include <stdint.h>
 #include <map>
-#include <string>
-#include <list>
+#include <queue>
 #include <stdio.h>
 #include <ctime>
 #include <sys/time.h>
@@ -36,24 +35,24 @@ public:
     // Represents a client connection
     struct Connection
     {
-        list<string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
+        queue<const char*>       buffer;     // Ordered list of pending messages to flush out when socket is writable
         map<string,string> keyValueMap;
         time_t             createTime;
     };
 
-    // Manages connections. Unfortunately this is public because static callback for 
+    // Manages connections. Unfortunately this is public because static callback for
     // libwebsockets is defined outside the instance and needs access to it.
     map<int,Connection*> connections;
 
     // Constructor / Destructor
     WebSocketServer( int port, const string certPath = "", const string& keyPath = "" );
     ~WebSocketServer( );
-    
+
     void run(       uint64_t timeout = 50     );
     void wait(      uint64_t timeout = 50     );
-    void send(      int socketID, string data );
-    void broadcast( string data               );
-    
+    void send(      int socketID, const char * data );
+    void broadcast( const char * data               );
+
     // Key => value storage for each connection
     string getValue( int socketID, const string& name );
     void   setValue( int socketID, const string& name, const string& value );
@@ -75,11 +74,11 @@ protected:
     // Nothing, yet.
 
 private:
-    int                  _port;    
+    int                  _port;
     string               _keyPath;
     string               _certPath;
     struct lws_context  *_context;
-    
+
     void _removeConnection( int socketID );
 };
 

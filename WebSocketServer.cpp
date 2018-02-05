@@ -8,11 +8,11 @@
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
  *  License   : BSD (see LICENSE)
- *  -------------------------------------------------------------------------- 
+ *  --------------------------------------------------------------------------
  **/
 
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <sys/time.h>
 #include <fcntl.h>
 #include "libwebsockets.h"
@@ -22,21 +22,21 @@
 using namespace std;
 
 // 0 for unlimited
-#define MAX_BUFFER_SIZE 0
+#define MAX_BUFFER_SIZE 131072
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
 
-static int callback_main(   struct lws *wsi, 
-                            enum lws_callback_reasons reason, 
-                            void *user, 
-                            void *in, 
+static int callback_main(   struct lws *wsi,
+                            enum lws_callback_reasons reason,
+                            void *user,
+                            void *in,
                             size_t len )
 {
     int fd;
     unsigned char buf[LWS_SEND_BUFFER_PRE_PADDING + 512 + LWS_SEND_BUFFER_POST_PADDING];
     unsigned char *p = &buf[LWS_SEND_BUFFER_PRE_PADDING];
-    
+
     switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnectWrapper( lws_get_socket_fd( wsi ) );
@@ -47,18 +47,18 @@ static int callback_main(   struct lws *wsi,
             fd = lws_get_socket_fd( wsi );
             while( !self->connections[fd]->buffer.empty( ) )
             {
-                string message = self->connections[fd]->buffer.front( ); 
-                int msgLen = message.length();
-                int charsSent = lws_write( wsi, (unsigned char*)message.c_str(), msgLen, LWS_WRITE_TEXT );
+                const char * message = self->connections[fd]->buffer.front( );
+                int msgLen = (strchr(message, (int)' ') - message);
+                int charsSent = lws_write( wsi, (unsigned char *)message, msgLen, LWS_WRITE_TEXT );
                 if( charsSent < msgLen )
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
                 else
                     // Only pop the message if it was sent successfully.
-                    self->connections[fd]->buffer.pop_front( ); 
+                    self->connections[fd]->buffer.pop( );
             }
             lws_callback_on_writable( wsi );
             break;
-        
+
         case LWS_CALLBACK_RECEIVE:
             self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in ) );
             break;
@@ -86,7 +86,7 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
 {
     this->_port     = port;
     this->_certPath = certPath;
-    this->_keyPath  = keyPath; 
+    this->_keyPath  = keyPath;
 
     lws_set_log_level( 0, lwsl_emit_syslog ); // We'll do our own logging, thank you.
     struct lws_context_creation_info info;
@@ -97,14 +97,14 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
 #ifndef LWS_NO_EXTENSIONS
     info.extensions = lws_get_internal_extensions( );
 #endif
-    
+
     if( !this->_certPath.empty( ) && !this->_keyPath.empty( ) )
     {
         Util::log( "Using SSL certPath=" + this->_certPath + ". keyPath=" + this->_keyPath + "." );
         info.ssl_cert_filepath        = this->_certPath.c_str( );
         info.ssl_private_key_filepath = this->_keyPath.c_str( );
-    } 
-    else 
+    }
+    else
     {
         Util::log( "Not using SSL" );
         info.ssl_cert_filepath        = NULL;
@@ -121,11 +121,11 @@ WebSocketServer::WebSocketServer( int port, const string certPath, const string&
     this->_context = lws_create_context( &info );
     if( !this->_context )
         throw "libwebsocket init failed";
-    Util::log( "Server started on port " + Util::toString( this->_port ) ); 
+    Util::log( "Server started on port " + Util::toString( this->_port ) );
 
-    // Some of the libwebsocket stuff is define statically outside the class. This 
+    // Some of the libwebsocket stuff is define statically outside the class. This
     // allows us to call instance variables from the outside.  Unfortunately this
-    // means some attributes must be public that otherwise would be private. 
+    // means some attributes must be public that otherwise would be private.
     self = this;
 }
 
@@ -156,18 +156,18 @@ void WebSocketServer::onDisconnectWrapper( int socketID )
 
 void WebSocketServer::onErrorWrapper( int socketID, const string& message )
 {
-    Util::log( "Error: " + message + " on socketID '" + Util::toString( socketID ) + "'" ); 
+    Util::log( "Error: " + message + " on socketID '" + Util::toString( socketID ) + "'" );
     this->onError( socketID, message );
     this->_removeConnection( socketID );
 }
 
-void WebSocketServer::send( int socketID, string data )
+void WebSocketServer::send( int socketID, const char * data )
 {
     // Push this onto the buffer. It will be written out when the socket is writable.
-    this->connections[socketID]->buffer.push_back( data );
+    this->connections[socketID]->buffer.push( data );
 }
 
-void WebSocketServer::broadcast( string data )
+void WebSocketServer::broadcast(const char * data )
 {
     for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
         this->send( it->first, data );
