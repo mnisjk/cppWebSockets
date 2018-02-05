@@ -12,6 +12,7 @@
  **/
 
 #include <stdlib.h>
+#include <string>
 #include <cstring>
 #include <sys/time.h>
 #include <fcntl.h>
@@ -54,7 +55,7 @@ static int callback_main(   struct lws *wsi,
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
                 else
                     // Only pop the message if it was sent successfully.
-                    self->connections[fd]->buffer.pop( );
+                    self->connections[fd]->buffer.pop_front( );
             }
             lws_callback_on_writable( wsi );
             break;
@@ -161,13 +162,13 @@ void WebSocketServer::onErrorWrapper( int socketID, const string& message )
     this->_removeConnection( socketID );
 }
 
-void WebSocketServer::send( int socketID, const char * data )
+void WebSocketServer::send( int socketID, string data )
 {
     // Push this onto the buffer. It will be written out when the socket is writable.
-    this->connections[socketID]->buffer.push( data );
+    this->connections[socketID]->buffer.push_back( data.c_str() );
 }
 
-void WebSocketServer::broadcast(const char * data )
+void WebSocketServer::broadcast(string data )
 {
     for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
         this->send( it->first, data );

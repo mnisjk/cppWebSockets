@@ -15,7 +15,8 @@
 #define _WEBSOCKETSERVER_H
 #include <stdint.h>
 #include <map>
-#include <queue>
+#include <string>
+#include <list>
 #include <stdio.h>
 #include <ctime>
 #include <sys/time.h>
@@ -35,7 +36,7 @@ public:
     // Represents a client connection
     struct Connection
     {
-        queue<const char*>       buffer;     // Ordered list of pending messages to flush out when socket is writable
+        list<const char*>       buffer;     // Ordered list of pending messages to flush out when socket is writable
         map<string,string> keyValueMap;
         time_t             createTime;
     };
@@ -50,8 +51,8 @@ public:
 
     void run(       uint64_t timeout = 50     );
     void wait(      uint64_t timeout = 50     );
-    void send(      int socketID, const char * data );
-    void broadcast( const char * data               );
+    void send(      int socketID, string data );
+    void broadcast( string data               );
 
     // Key => value storage for each connection
     string getValue( int socketID, const string& name );
