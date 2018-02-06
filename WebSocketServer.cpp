@@ -49,7 +49,7 @@ static int callback_main(   struct lws *wsi,
             while( !self->connections[fd]->buffer.empty( ) )
             {
                 const char * message = self->connections[fd]->buffer.front( );
-                int msgLen = (strchr(message, (int)' ') - message);
+                int msgLen = strlen(message);
                 int charsSent = lws_write( wsi, (unsigned char *)message, msgLen, LWS_WRITE_TEXT );
                 if( charsSent < msgLen )
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
