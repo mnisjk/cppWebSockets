@@ -26,5 +26,5 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************
 
 Please note this is a C++ wrapper around Andy Green's libwebsockets C library.
-libwebsockets is licensed under LGPL2.1.
+libwebsockets is licensed under the MIT license.
 
