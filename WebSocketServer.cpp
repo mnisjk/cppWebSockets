@@ -61,7 +61,7 @@ static int callback_main(   struct lws *wsi,
             break;
 
         case LWS_CALLBACK_RECEIVE:
-            self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in ) );
+            self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in, len ) );
             break;
 
         case LWS_CALLBACK_CLOSED:
