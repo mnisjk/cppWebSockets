@@ -77,11 +77,15 @@ void ChatServer::onDisconnect( int socketID )
     
     // Let everyone know the user has disconnected
     const string& message = handle + " has disconnected.";
-    for( map<int,Connection*>::const_iterator it = this->connections.begin( ); it != this->connections.end( ); ++it )
+    for( auto it = connections().begin( ); it != this->connections().end( ); ++it )
+	{
         if( it->first != socketID )
+		{
             // The disconnected connection gets deleted after this function runs, so don't try to send to it
             // (It's still around in case the implementing class wants to perform any clean up actions)
-            this->send( it->first, message );
+            send( it->first, message );
+		}
+	}
 }
 
 void ChatServer::onError( int socketID, const string& message )

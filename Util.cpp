@@ -6,28 +6,27 @@
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
  *  License   : BSD (see LICENSE)
- *  -------------------------------------------------------------------------- 
+ *  --------------------------------------------------------------------------
  **/
 
-#include <stdio.h>
 #include "Util.h"
+#include <cstdio>
 
-using namespace std;
+constexpr auto LOG_PREFIX = "[cppWebSockets] ";
 
-#define LOG_PREFIX      "[cppWebSockets] "
-
-void Util::log( const string& message )
+void Util::log( const std::string& message )
 {
-    const string& logMessage = LOG_PREFIX + message;
+    const std::string& logMessage = LOG_PREFIX + message;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
     syslog( LOG_WARNING, "%s", logMessage.c_str( ) );
 
 #ifdef LOG_TO_STDOUT
-        printf( "%s\n", logMessage.c_str( ) );
-#endif 
+    std::cout << logMessage << std::endl;
+#endif
 }
 
 void Util::log( const char* message )
 {
-    log( string( message ) );
+    log( std::string( message ) );
 }
 

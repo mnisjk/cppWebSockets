@@ -55,7 +55,7 @@ void EchoServer::onMessage( int socketID, const string& data )
 {
     // Reply back with the same message
     Util::log( "Received: " + data );
-    this->send( socketID, data );
+    send( socketID, data );
 }
 
 void EchoServer::onDisconnect( int socketID )
