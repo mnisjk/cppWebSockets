@@ -11,20 +11,19 @@
  *  --------------------------------------------------------------------------
  **/
 
-#ifndef _WEBSOCKETSERVER_H
-#define _WEBSOCKETSERVER_H
-#include <stdint.h>
-#include <map>
-#include <string>
-#include <list>
-#include <stdio.h>
-#include <ctime>
-#include <sys/time.h>
-#include <iostream>
-#include <sstream>
-#include "libwebsockets.h"
+#ifndef WEBSOCKETSERVER_H
+#define WEBSOCKETSERVER_H
 
-using namespace std;
+#include "libwebsockets.h"
+#include <cstdint>
+#include <cstdio>
+#include <ctime>
+#include <iostream>
+#include <list>
+#include <map>
+#include <sstream>
+#include <string>
+#include <sys/time.h>
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -36,51 +35,57 @@ public:
     // Represents a client connection
     struct Connection
     {
-        list<const char*>       buffer;     // Ordered list of pending messages to flush out when socket is writable
-        map<string,string> keyValueMap;
+        std::list<std::string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
+        std::map<std::string, std::string> keyValueMap;
         time_t             createTime;
     };
 
     // Manages connections. Unfortunately this is public because static callback for
     // libwebsockets is defined outside the instance and needs access to it.
-    map<int,Connection*> connections;
+    std::map<int,Connection*> &connections() { return _connections; }
 
     // Constructor / Destructor
-    WebSocketServer( int port, const string certPath = "", const string& keyPath = "" );
-    ~WebSocketServer( );
+    explicit WebSocketServer( int port, const std::string &certPath = "", const std::string& keyPath = "" );
+    virtual ~WebSocketServer( );
 
-    void run(       uint64_t timeout = 50     );
-    void wait(      uint64_t timeout = 50     );
-    void send(      int socketID, string data );
-    void broadcast( string data               );
+    void run(       int timeout = 50     );
+    void wait(      int timeout = 50     );
+    void send(      int socketID, const std::string &data );
+    void broadcast( const std::string &data               );
 
     // Key => value storage for each connection
-    string getValue( int socketID, const string& name );
-    void   setValue( int socketID, const string& name, const string& value );
-    int    getNumberOfConnections( );
+    std::string getValue( int socketID, const std::string& name ) const;
+    void   setValue( int socketID, const std::string& name, const std::string& value );
+    int    getNumberOfConnections( ) const;
 
     // Overridden by children
     virtual void onConnect(    int socketID                        ) = 0;
-    virtual void onMessage(    int socketID, const string& data    ) = 0;
+    virtual void onMessage(    int socketID, const std::string& data    ) = 0;
     virtual void onDisconnect( int socketID                        ) = 0;
-    virtual void   onError(    int socketID, const string& message ) = 0;
+    virtual void   onError(    int socketID, const std::string& message ) = 0;
 
 
     // Wrappers, so we can take care of some maintenance
     void onConnectWrapper(    int socketID );
     void onDisconnectWrapper( int socketID );
-    void onErrorWrapper( int socketID, const string& message );
+    void onErrorWrapper( int socketID, const std::string& message );
 
 protected:
     // Nothing, yet.
 
 private:
     int                  _port;
-    string               _keyPath;
-    string               _certPath;
+    std::string          _keyPath;
+    std::string          _certPath;
     struct lws_context  *_context;
+    std::map<int,Connection*> _connections;
 
     void _removeConnection( int socketID );
+    // private copy constructor to keep it from being used (the libwebsockets C library needs special care)
+    WebSocketServer(const WebSocketServer &rhs);
+    WebSocketServer(const WebSocketServer &&rhs) noexcept;
+    WebSocketServer& operator=(const WebSocketServer &rhs);
+    WebSocketServer& operator=(const WebSocketServer &&rhs) noexcept;
 };
 
 // WebSocketServer.h

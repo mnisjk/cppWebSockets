@@ -6,18 +6,16 @@
  *  Author    : Jason Kruse <jason@jasonkruse.com> or @mnisjk
  *  Copyright : 2014
  *  License   : BSD (see LICENSE)
- *  -------------------------------------------------------------------------- 
+ *  --------------------------------------------------------------------------
  **/
 
-#ifndef _UTIL_H
-#define _UTIL_H
+#ifndef UTIL_H
+#define UTIL_H
 
-#include <string>
-#include <syslog.h>
 #include <iostream>
 #include <sstream>
-
-using namespace std;
+#include <string>
+#include <syslog.h>
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -27,10 +25,10 @@ using namespace std;
 class Util
 {
 public:
-    static void   log( const string& message );
+    static void   log( const std::string& message );
     static void   log( const char* message );
     template<typename T>
-    static inline string toString(T t) { stringstream s; s << t; return s.str(); }
+    static inline std::string toString(T t) { std::stringstream s; s << t; return s.str(); }
 };
 
 // Util.h
